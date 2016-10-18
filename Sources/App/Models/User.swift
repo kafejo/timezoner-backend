@@ -12,12 +12,13 @@ import Foundation
 import Auth
 import Turnstile
 import HTTP
+import TurnstileCrypto
 
 final class User: Model {
     var id: Node?
     var username: String
     var password: String
-    var authorizationToken: String = ""
+    var authorizationToken: String = URandom().secureToken
 
     var exists: Bool = false
 

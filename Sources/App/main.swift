@@ -2,7 +2,6 @@ import Vapor
 import VaporPostgreSQL
 import Auth
 import Turnstile
-import TurnstileCrypto
 
 let drop = Droplet()
 try drop.addProvider(VaporPostgreSQL.Provider(dbname: "timezoner", user: "admin", password: "kofejn"))
@@ -27,11 +26,22 @@ drop.group("users") { users in
             throw Abort.serverError
         }
 
-        if user.authorizationToken == "" {
-            user.authorizationToken = URandom().secureToken
+        try user.save()
+
+        return user
+    }
+
+    users.post("signin") { request in
+        guard let username = request.data["username"]?.string, let password = request.data["password"]?.string else {
+            throw Abort.custom(status: .badRequest, message: "Missing credentials")
         }
 
-        try user.save()
+        let credentials = UsernamePassword(username: username, password: password)
+        try request.auth.login(credentials)
+
+        guard let user = try request.auth.user() as? User else {
+            throw Abort.serverError
+        }
 
         return user
     }
