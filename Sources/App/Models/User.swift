@@ -42,6 +42,15 @@ final class User: Model {
             "token": authorizationToken
             ])
     }
+
+    func makeResponse() throws -> Response {
+        let json = try JSON(node: [
+            "username": username,
+            "token": authorizationToken
+            ])
+
+        return try json.makeResponse()
+    }
 }
 
 extension User: Preparation {
