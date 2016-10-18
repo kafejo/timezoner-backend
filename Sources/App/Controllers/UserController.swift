@@ -25,7 +25,7 @@ final class UserController: ResourceRepresentable {
 //        return user
 //    }
 
-    func makeResource() -> Resource<Post> {
+    func makeResource() -> Resource<User> {
         return Resource(
             index: index
         )
