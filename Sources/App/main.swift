@@ -47,6 +47,15 @@ drop.group("users") { users in
     }
 }
 
+let protectMiddleware = ProtectMiddleware(error: Abort.custom(status: .unauthorized, message: "Unauthorized"))
+
+drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("me") { me in
+    me.get() { request in
+        return try request.user()
+    }
+}
+
+
 drop.resource("u", UserController())
 
 drop.run()

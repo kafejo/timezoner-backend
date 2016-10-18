@@ -81,6 +81,7 @@ extension User: Auth.User {
             var user = User(username: credentials.username, password: credentials.password)
             try user.save()
             return user
+
         default:
             throw AccountTakenError()
         }
@@ -99,9 +100,23 @@ extension User: Auth.User {
             }
 
             return user
-            
+        case let accessToken as AccessToken:
+            if let user = try User.query().filter("token", accessToken.string).first() {
+                return user
+            } else {
+                throw Abort.custom(status: .forbidden, message: "Invalid token")
+            }
         default:
             throw UnsupportedCredentialsError()
         }
+    }
+}
+
+extension Request {
+    func user() throws -> User {
+        guard let user = try auth.user() as? User else {
+            throw Abort.custom(status: .enhanceYourCalm, message: "Calm down!")
+        }
+        return user
     }
 }
