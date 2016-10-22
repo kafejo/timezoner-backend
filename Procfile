@@ -1,1 +1,1 @@
-web: App --env=production --workdir="./" --bind 0.0.0.0:$PORT
+web: App --bind 0.0.0.0:$PORT
