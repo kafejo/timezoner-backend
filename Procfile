@@ -1,1 +1,1 @@
-web: App --bind 0.0.0.0:$PORT
+web: App --workdir="./"
