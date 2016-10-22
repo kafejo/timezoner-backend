@@ -15,9 +15,17 @@ import HTTP
 import TurnstileCrypto
 
 final class User: Model {
+
+    enum Role: String {
+        case admin = "admin"
+        case manager = "manager"
+        case user = "user"
+    }
+
     var id: Node?
     var username: String
     var password: String
+    var role: Role = Role.user
     var authorizationToken: String = URandom().secureToken
 
     var exists: Bool = false
@@ -31,6 +39,7 @@ final class User: Model {
         id = try node.extract("id")
         username = try node.extract("username")
         password = try node.extract("password")
+        role = try Role(rawValue: node.extract("role")) ?? .user
         authorizationToken = try node.extract("token")
     }
 
@@ -39,14 +48,16 @@ final class User: Model {
             "id": id,
             "username": username,
             "password": password,
+            "role": role.rawValue,
             "token": authorizationToken
             ])
     }
 
     func makeResponse() throws -> Response {
         let json = try JSON(node: [
+            "token": authorizationToken,
             "username": username,
-            "token": authorizationToken
+            "role": role.rawValue
             ])
 
         return try json.makeResponse()
@@ -59,6 +70,7 @@ extension User: Preparation {
             users.id()
             users.string("username")
             users.string("password")
+            users.string("role")
             users.string("token")
         }
     }
