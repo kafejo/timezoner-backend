@@ -132,3 +132,9 @@ extension Request {
         return user
     }
 }
+
+extension User {
+    func timezones() throws -> Children<Timezone> {
+        return children()
+    }
+}
