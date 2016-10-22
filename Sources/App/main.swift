@@ -4,7 +4,8 @@ import Auth
 import Turnstile
 
 let drop = Droplet()
-try drop.addProvider(VaporPostgreSQL.Provider(dbname: "timezoner", user: "admin", password: "kofejn"))
+// try drop.addProvider(VaporPostgreSQL.Provider(dbname: "timezoner", user: "admin", password: "kofejn"))
+try drop.addProvider(VaporPostgreSQL.Provider(dbname: "de3v0r08639v98", user: "tbjhbhptvugeeu", password: "9Zba7c5v_7Ah71SnPD41OzjL8x"))
 drop.preparations = [User.self]
 
 let auth = AuthMiddleware(user: User.self)
