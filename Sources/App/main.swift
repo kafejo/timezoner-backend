@@ -3,6 +3,7 @@ import VaporPostgreSQL
 import Auth
 import Turnstile
 import HTTP
+import Foundation
 
 let drop = Droplet()
 
@@ -81,12 +82,16 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("me") { 
         }
 
         timezones.post() { request in
-            guard let name = request.data["name"]?.string, let secondsFromGMT = request.data["sec_gmt"]?.int else {
+            guard let name = request.data["name"]?.string, let identifier = request.data["identifier"]?.string else {
                 throw Abort.badRequest
             }
 
+            if !TimeZone.knownTimeZoneIdentifiers.contains(identifier) {
+                throw Abort.custom(status: .badRequest, message: "Invalid timezone identifier")
+            }
+
             let user = try request.user()
-            var timezone = try Timezone(name: name, secondsFromGMT: secondsFromGMT, user: user)
+            var timezone = try Timezone(name: name, identifier: identifier, user: user)
             try timezone.save()
 
             return timezone
@@ -115,11 +120,15 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddlew
     }
 
     users.grouped(adminMiddleware).post(User.self, "timezones") { (request, user) -> ResponseRepresentable in
-        guard let name = request.data["name"]?.string, let secondsFromGMT = request.data["sec_gmt"]?.int else {
+        guard let name = request.data["name"]?.string, let identifier = request.data["identifier"]?.string else {
             throw Abort.badRequest
         }
-        
-        var timezone = try Timezone(name: name, secondsFromGMT: secondsFromGMT, user: user)
+
+        if !TimeZone.knownTimeZoneIdentifiers.contains(identifier) {
+            throw Abort.custom(status: .badRequest, message: "Invalid timezone identifier")
+        }
+
+        var timezone = try Timezone(name: name, identifier: identifier, user: user)
         try timezone.save()
 
         return timezone
@@ -132,6 +141,7 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddlew
         guard let timezone_id = request.parameters["timezone_id"]?.int else {
             throw Abort.badRequest
         }
+        
         let filteredTimezones = try user.timezones().all().filter { $0.id == Node.number(Node.Number(timezone_id)) }
 
         if let first = filteredTimezones.first {
@@ -148,6 +158,7 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddlew
         guard let timezone_id = request.parameters["timezone_id"]?.int else {
             throw Abort.badRequest
         }
+        
         let filteredTimezones = try user.timezones().all().filter { $0.id == Node.number(Node.Number(timezone_id)) }
 
         if let first = filteredTimezones.first {

@@ -13,15 +13,15 @@ import Fluent
 final class Timezone: Model {
 
     var id: Node?
-    let secondsFromGMT: Int
+    let identifier: String
     let name: String
     let userId: Node
 
     var exists: Bool = false
 
-    init(name: String, secondsFromGMT: Int, user: User) throws {
+    init(name: String, identifier: String, user: User) throws {
         self.name = name
-        self.secondsFromGMT = secondsFromGMT
+        self.identifier = identifier
 
         if let id = user.id {
             self.userId = id
@@ -32,7 +32,7 @@ final class Timezone: Model {
 
     init(node: Node, in context: Context) throws {
         id = try node.extract("id")
-        secondsFromGMT = try node.extract("sec_gmt")
+        identifier = try node.extract("identifier")
         name = try node.extract("name")
         userId = try node.extract("user_id")
     }
@@ -41,7 +41,7 @@ final class Timezone: Model {
          return try Node(node: [
             "id": id,
             "name": name,
-            "sec_gmt": secondsFromGMT,
+            "identifier": identifier,
             "user_id": userId
             ])
     }
@@ -50,7 +50,7 @@ final class Timezone: Model {
         try database.create("timezones") { timezones in
             timezones.id()
             timezones.string("name")
-            timezones.int("sec_gmt")
+            timezones.string("identifier")
             timezones.parent(User.self, optional: false)
         }
     }
