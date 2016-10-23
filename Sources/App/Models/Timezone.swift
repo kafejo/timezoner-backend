@@ -32,7 +32,7 @@ final class Timezone: Model {
 
     init(node: Node, in context: Context) throws {
         id = try node.extract("id")
-        secondsFromGMT = try node.extract("sec_gtm")
+        secondsFromGMT = try node.extract("sec_gmt")
         name = try node.extract("name")
         userId = try node.extract("user_id")
     }
@@ -41,7 +41,7 @@ final class Timezone: Model {
          return try Node(node: [
             "id": id,
             "name": name,
-            "sec_gtm": secondsFromGMT,
+            "sec_gmt": secondsFromGMT,
             "user_id": userId
             ])
     }
@@ -50,7 +50,7 @@ final class Timezone: Model {
         try database.create("timezones") { timezones in
             timezones.id()
             timezones.string("name")
-            timezones.int("sec_gtm")
+            timezones.int("sec_gmt")
             timezones.parent(User.self, optional: false)
         }
     }
