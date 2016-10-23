@@ -13,7 +13,7 @@ import Turnstile
 
 class BearerAuthenticationMiddleware: Middleware {
     func respond(to request: Request, chainingTo next: Responder) throws -> Response {
-        //throw Abort.custom(status: .enhanceYourCalm, message: "FUck")
+        
         if let apiKey = request.auth.header?.bearer {
 
             try? request.auth.login(apiKey)

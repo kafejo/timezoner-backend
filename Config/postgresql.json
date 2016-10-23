@@ -1,0 +1,7 @@
+{
+    "host": "localhost",
+    "user": "admin",
+    "password": "kofejn",
+    "database": "timezoner",
+    "port": 5432
+}

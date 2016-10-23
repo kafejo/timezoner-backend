@@ -4,9 +4,15 @@ import Auth
 import Turnstile
 
 let drop = Droplet()
-// try drop.addProvider(VaporPostgreSQL.Provider(dbname: "timezoner", user: "admin", password: "kofejn"))
-try drop.addProvider(VaporPostgreSQL.Provider(host: "ec2-54-75-232-66.eu-west-1.compute.amazonaws.com", port: 5432, dbname: "de3v0r08639v98", user: "tbjhbhptvugeeu", password: "9Zba7c5v_7Ah71SnPD41OzjL8x"))
-drop.preparations = [User.self]
+
+let host = drop.config["postgresql", "host"]?.string ?? "localhost"
+let port = drop.config["postgresql", "port"]?.int ?? 5432
+let dbname = drop.config["postgresql", "database"]?.string ?? "timezoner"
+let password = drop.config["postgresql", "password"]?.string ?? "kofejn"
+let user = drop.config["postgresql", "user"]?.string ?? "admin"
+
+try drop.addProvider(VaporPostgreSQL.Provider(host: host, port: port, dbname: dbname, user: user, password: password))
+drop.preparations = [User.self, Timezone.self]
 
 let auth = AuthMiddleware(user: User.self)
 drop.middleware.append(auth)
@@ -68,16 +74,16 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("me") { 
             }
 
             let user = try request.user()
-            let timezone = try Timezone(name: name, secondsFromGMT: secondsFromGMT, user: user)
+            var timezone = try Timezone(name: name, secondsFromGMT: secondsFromGMT, user: user)
+            try timezone.save()
 
             return timezone
         }
     }
-
-
 }
 
-
-drop.resource("u", UserController())
+drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("users") { me in
+    
+}
 
 drop.run()
