@@ -100,7 +100,7 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("me") { 
         timezones.delete(":id") { (request) in
             let user = try request.user()
 
-            guard let timezone_id = request.parameters["timezone_id"]?.int else {
+            guard let timezone_id = request.parameters["id"]?.int else {
                 throw Abort.badRequest
             }
 
