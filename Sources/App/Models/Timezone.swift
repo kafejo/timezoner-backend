@@ -13,9 +13,9 @@ import Fluent
 final class Timezone: Model {
 
     var id: Node?
-    let identifier: String
-    let name: String
-    let userId: Node
+    var identifier: String
+    var name: String
+    var userId: Node
 
     var exists: Bool = false
 

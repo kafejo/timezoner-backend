@@ -97,6 +97,34 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("me") { 
             return timezone
         }
 
+        timezones.put(":id") { request in
+            let user = try request.user()
+
+            guard let timezone_id = request.parameters["id"]?.int else {
+                throw Abort.badRequest
+            }
+
+            let filtered = try user.timezones().all().filter { $0.id == Node.number(Node.Number(timezone_id)) }
+
+            guard var timezone = filtered.first else {
+                throw Abort.custom(status: .notFound, message: "Timezone wasn't found")
+            }
+
+            guard let name = request.data["name"]?.string, let identifier = request.data["identifier"]?.string else {
+                throw Abort.badRequest
+            }
+
+            if !TimeZone.knownTimeZoneIdentifiers.contains(identifier) {
+                throw Abort.custom(status: .badRequest, message: "Invalid timezone identifier")
+            }
+
+            timezone.identifier = identifier
+            timezone.name = name
+            try timezone.save()
+
+            return timezone
+        }
+
         timezones.delete(":id") { (request) in
             let user = try request.user()
 
