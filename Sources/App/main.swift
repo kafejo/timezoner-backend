@@ -109,7 +109,7 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("me") { 
 
             if let timezone = filtered.first {
                 try timezone.delete()
-                return try Response(status: .noContent, json: JSON(node: [:]))
+                return try Response(status: .ok, json: JSON(node: [:]))
             } else {
                 throw Abort.custom(status: .notFound, message: "Timezone wasn't found")
             }
