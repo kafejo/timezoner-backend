@@ -55,6 +55,7 @@ final class User: Model {
 
     func makeResponse() throws -> Response {
         let json = try JSON(node: [
+            "id": id,
             "token": authorizationToken,
             "username": username,
             "role": role.rawValue
