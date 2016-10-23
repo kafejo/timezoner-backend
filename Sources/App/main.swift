@@ -96,6 +96,19 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("me") { 
 
             return timezone
         }
+
+        timezones.delete(Timezone.self) { (request, timezone) in
+            let user = try request.user()
+
+            let filtered = try user.timezones().all().filter { $0.id == timezone.id }
+
+            if filtered.count == 1 {
+                try timezone.delete()
+                return try Response(status: .noContent, json: JSON(node: [:]))
+            } else {
+                throw Abort.custom(status: .notFound, message: "Timezone wasn't found")
+            }
+        }
     }
 }
 
