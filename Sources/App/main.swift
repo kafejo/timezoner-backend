@@ -2,6 +2,7 @@ import Vapor
 import VaporPostgreSQL
 import Auth
 import Turnstile
+import HTTP
 
 let drop = Droplet()
 
@@ -62,10 +63,11 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("me") { 
     }
 
     me.patch() { request in
-        let user = try request.user()
+        var user = try request.user()
 
         if let roleValue = request.data["role"]?.string, let role = User.Role(rawValue: roleValue) {
             user.role = role
+            try user.save()
         }
 
         return user
@@ -92,8 +94,69 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("me") { 
     }
 }
 
-drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("users") { me in
-    
+let managerMiddleware = RoleMiddleware(accessibleRoles: [.manager, .admin])
+let adminMiddleware = RoleMiddleware(accessibleRoles: [.admin])
+drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddleware).group("users") { users in
+    users.get() { request in
+        return try JSON(node: User.all())
+    }
+
+    users.grouped(adminMiddleware).delete(User.self) { request, user in
+        try user.delete()
+
+        return try Response(status: .noContent, json: JSON(node: [:]))
+    }
+
+    users.grouped(adminMiddleware).get(":id", "timezones") { (request) -> ResponseRepresentable in
+        guard let id = request.parameters["id"]?.int, let user = try User.query().filter("id", id).first() else {
+            throw Abort.badRequest
+        }
+        return try JSON(node: user.timezones().all())
+    }
+
+    users.grouped(adminMiddleware).post(User.self, "timezones") { (request, user) -> ResponseRepresentable in
+        guard let name = request.data["name"]?.string, let secondsFromGMT = request.data["sec_gmt"]?.int else {
+            throw Abort.badRequest
+        }
+        
+        var timezone = try Timezone(name: name, secondsFromGMT: secondsFromGMT, user: user)
+        try timezone.save()
+
+        return timezone
+    }
+
+    users.grouped(adminMiddleware).get(":id", "timezones", ":timezone_id") { (request) -> ResponseRepresentable in
+        guard let id = request.parameters["id"]?.int, let user = try User.query().filter("id", id).first() else {
+            throw Abort.badRequest
+        }
+        guard let timezone_id = request.parameters["timezone_id"]?.int else {
+            throw Abort.badRequest
+        }
+        let filteredTimezones = try user.timezones().all().filter { $0.id == Node.number(Node.Number(timezone_id)) }
+
+        if let first = filteredTimezones.first {
+            return first
+        } else {
+            throw Abort.notFound
+        }
+    }
+
+    users.grouped(adminMiddleware).delete(":id", "timezones", ":timezone_id") { (request) -> ResponseRepresentable in
+        guard let id = request.parameters["id"]?.int, let user = try User.query().filter("id", id).first() else {
+            throw Abort.badRequest
+        }
+        guard let timezone_id = request.parameters["timezone_id"]?.int else {
+            throw Abort.badRequest
+        }
+        let filteredTimezones = try user.timezones().all().filter { $0.id == Node.number(Node.Number(timezone_id)) }
+
+        if let first = filteredTimezones.first {
+            try first.delete()
+            return try Response(status: .noContent, json: JSON(node: [:]))
+        } else {
+            throw Abort.notFound
+        }
+    }
 }
 
 drop.run()
