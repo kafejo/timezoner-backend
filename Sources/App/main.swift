@@ -54,6 +54,27 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("me") { 
     me.get() { request in
         return try request.user()
     }
+
+    me.group("timezones") { timezones in
+        timezones.get() { request in
+            let timezones = try request.user().timezones()
+
+            return try JSON(node: timezones.all())
+        }
+
+        timezones.post() { request in
+            guard let name = request.data["name"]?.string, let secondsFromGMT = request.data["sec_gmt"]?.int else {
+                throw Abort.badRequest
+            }
+
+            let user = try request.user()
+            let timezone = try Timezone(name: name, secondsFromGMT: secondsFromGMT, user: user)
+
+            return timezone
+        }
+    }
+
+
 }
 
 
