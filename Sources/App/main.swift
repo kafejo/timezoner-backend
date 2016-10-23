@@ -61,6 +61,16 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware).group("me") { 
         return try request.user()
     }
 
+    me.patch() { request in
+        let user = try request.user()
+
+        if let roleValue = request.data["role"]?.string, let role = User.Role(rawValue: roleValue) {
+            user.role = role
+        }
+
+        return user
+    }
+
     me.group("timezones") { timezones in
         timezones.get() { request in
             let timezones = try request.user().timezones()
