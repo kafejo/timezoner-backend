@@ -197,12 +197,17 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddlew
         }
     }
 
-    users.grouped(adminMiddleware).delete(":id", "timezones", ":timezone_id") { (request) -> ResponseRepresentable in
-        guard let id = request.parameters["id"]?.int, let user = try User.query().filter("id", id).first() else {
-            throw Abort.badRequest
+    users.grouped(adminMiddleware).patch(":id", "timezones", ":timezone_id") { (request) -> ResponseRepresentable in
+        guard let id = request.parameters["id"]?.int else {
+            throw Abort.custom(status: .badRequest, message: "User not found")
         }
+
+        guard let user = try User.query().filter("id", id).first() else {
+            throw Abort.custom(status: .badRequest, message: "User not found!")
+        }
+
         guard let timezone_id = request.parameters["timezone_id"]?.int else {
-            throw Abort.badRequest
+            throw Abort.custom(status: .badRequest, message: "Timezone id missing")
         }
         
         let filteredTimezones = try user.timezones().all().filter { $0.id == Node.number(Node.Number(timezone_id)) }
@@ -232,7 +237,7 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddlew
         if let first = filteredTimezones.first {
             first.identifier = identifier
             first.name = name
-            
+
             return first
         } else {
             throw Abort.notFound
