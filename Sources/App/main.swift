@@ -152,7 +152,7 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddlew
         return try JSON(node: User.all())
     }
 
-    users.grouped(adminMiddleware).delete(User.self) { request, user in
+    users.delete(User.self) { request, user in
         try user.delete()
 
         return try Response(status: .ok, json: JSON(node: [:]))
