@@ -209,7 +209,7 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddlew
 
         if let first = filteredTimezones.first {
             try first.delete()
-            return try Response(status: .noContent, json: JSON(node: [:]))
+            return try Response(status: .ok, json: JSON(node: [:]))
         } else {
             throw Abort.notFound
         }
