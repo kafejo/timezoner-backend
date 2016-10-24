@@ -155,7 +155,7 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddlew
     users.grouped(adminMiddleware).delete(User.self) { request, user in
         try user.delete()
 
-        return try Response(status: .noContent, json: JSON(node: [:]))
+        return try Response(status: .ok, json: JSON(node: [:]))
     }
 
     users.grouped(adminMiddleware).get(":id", "timezones") { (request) -> ResponseRepresentable in
