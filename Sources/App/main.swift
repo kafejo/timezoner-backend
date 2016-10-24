@@ -234,7 +234,7 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddlew
 
         let filteredTimezones = try user.timezones().all().filter { $0.id == Node.number(Node.Number(timezone_id)) }
 
-        if let first = filteredTimezones.first {
+        if var first = filteredTimezones.first {
             first.identifier = identifier
             first.name = name
             try first.save()
