@@ -88,7 +88,7 @@ extension User: Auth.User {
         case let credentials as UsernamePassword:
 
             if try User.query().filter("username", credentials.username).first() != nil {
-                throw Abort.custom(status: .badRequest, message: "Already registered")
+                throw Abort.custom(status: .conflict, message: "Already registered")
             }
 
             var user = User(username: credentials.username, password: credentials.password)
@@ -109,7 +109,7 @@ extension User: Auth.User {
             }
 
             if user.password != credentials.password {
-                throw Abort.custom(status: .forbidden, message: "Wrong password")
+                throw Abort.custom(status: .unauthorized, message: "Wrong password")
             }
 
             return user
@@ -117,7 +117,7 @@ extension User: Auth.User {
             if let user = try User.query().filter("token", accessToken.string).first() {
                 return user
             } else {
-                throw Abort.custom(status: .forbidden, message: "Invalid token")
+                throw Abort.custom(status: .unauthorized, message: "Invalid token")
             }
         default:
             throw UnsupportedCredentialsError()

@@ -21,7 +21,7 @@ class RoleMiddleware: Middleware {
         let user = try request.user()
 
         if !accessibleRoles.contains(user.role) {
-            throw Abort.custom(status: .unauthorized, message: "You don't have permissions")
+            throw Abort.custom(status: .forbidden, message: "You don't have permissions")
         }
 
         return try next.respond(to: request)
