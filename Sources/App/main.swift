@@ -237,7 +237,7 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddlew
         if let first = filteredTimezones.first {
             first.identifier = identifier
             first.name = name
-
+            try first.save()
             return first
         } else {
             throw Abort.notFound
