@@ -214,6 +214,30 @@ drop.grouped(BearerAuthenticationMiddleware(), protectMiddleware, managerMiddlew
             throw Abort.notFound
         }
     }
+
+    users.grouped(adminMiddleware).put(":id", "timezones", ":timezone_id") { (request) -> ResponseRepresentable in
+        guard let id = request.parameters["id"]?.int, let user = try User.query().filter("id", id).first() else {
+            throw Abort.badRequest
+        }
+        guard let timezone_id = request.parameters["timezone_id"]?.int else {
+            throw Abort.badRequest
+        }
+
+        guard let name = request.data["name"]?.string, let identifier = request.data["identifier"]?.string else {
+            throw Abort.badRequest
+        }
+
+        let filteredTimezones = try user.timezones().all().filter { $0.id == Node.number(Node.Number(timezone_id)) }
+
+        if let first = filteredTimezones.first {
+            first.identifier = identifier
+            first.name = name
+            
+            return first
+        } else {
+            throw Abort.notFound
+        }
+    }
 }
 
 drop.run()
